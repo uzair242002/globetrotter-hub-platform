@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const AuthForms = () => {
   const [activeTab, setActiveTab] = useState("login");
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [currentUser, navigate]);
   
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
@@ -59,24 +72,8 @@ const LoginForm = () => {
     
     try {
       await login(email, password, role);
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      
-      // Redirect based on role
-      if (role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      // Navigation will happen automatically via the useEffect in AuthForms
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Please check your credentials",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -153,17 +150,9 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
     
     try {
       await signup(name, email, password, role);
-      toast({
-        title: "Account created",
-        description: "You can now log in with your new account.",
-      });
       onSuccess();
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: error instanceof Error ? error.message : "Please try again with different credentials",
-        variant: "destructive",
-      });
+      // Error is already handled in the signup function
     } finally {
       setIsLoading(false);
     }
