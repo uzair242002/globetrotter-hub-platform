@@ -20,19 +20,25 @@ export const PackageList = () => {
   const [packages, setPackages] = useState<TravelPackage[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<TravelPackage[]>([]);
   const [destinationFilter, setDestinationFilter] = useState("");
-  const [durationFilter, setDurationFilter] = useState([1, 30]);
-  const [priceFilter, setPriceFilter] = useState([0, 5000]);
+  const [durationFilter, setDurationFilter] = useState<number[]>([1, 30]);
+  const [priceFilter, setPriceFilter] = useState<number[]>([0, 5000]);
   const [selectedPackage, setSelectedPackage] = useState<TravelPackage | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
 
   useEffect(() => {
     const activePackages = getActivePackages();
+    console.log("Active packages:", activePackages);
     setPackages(activePackages);
     setFilteredPackages(activePackages);
   }, []);
 
   useEffect(() => {
     let result = packages;
+    console.log("Filtering packages with:", { 
+      destinationFilter, 
+      durationFilter, 
+      priceFilter 
+    });
 
     // Filter by destination
     if (destinationFilter) {
@@ -51,17 +57,31 @@ export const PackageList = () => {
       pkg => pkg.price >= priceFilter[0] && pkg.price <= priceFilter[1]
     );
 
+    console.log("Filtered results:", result);
     setFilteredPackages(result);
   }, [destinationFilter, durationFilter, priceFilter, packages]);
 
   const handleViewDetails = (pkg: TravelPackage) => {
+    console.log("Viewing details for package:", pkg);
     setSelectedPackage(pkg);
     setShowBookingForm(false);
   };
 
   const handleBookNow = (pkg: TravelPackage) => {
+    console.log("Booking package:", pkg);
     setSelectedPackage(pkg);
     setShowBookingForm(true);
+  };
+
+  // Function to handle slider value changes
+  const handleDurationChange = (value: number[]) => {
+    console.log("Duration change:", value);
+    setDurationFilter(value);
+  };
+
+  const handlePriceChange = (value: number[]) => {
+    console.log("Price change:", value);
+    setPriceFilter(value);
   };
 
   return (
@@ -86,7 +106,7 @@ export const PackageList = () => {
               min={1}
               max={30}
               step={1}
-              onValueChange={setDurationFilter}
+              onValueChange={handleDurationChange}
               className="py-4"
             />
           </div>
@@ -98,7 +118,7 @@ export const PackageList = () => {
               min={0}
               max={5000}
               step={100}
-              onValueChange={setPriceFilter}
+              onValueChange={handlePriceChange}
               className="py-4"
             />
           </div>

@@ -142,7 +142,8 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"admin" | "user">("user");
+  // Remove admin role option, only allow user role
+  const role: "user" = "user";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,20 +193,6 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Role</Label>
-        <RadioGroup value={role} onValueChange={(value: "admin" | "user") => setRole(value)}>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="user" id="signup-user" />
-            <Label htmlFor="signup-user">User</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="admin" id="signup-admin" />
-            <Label htmlFor="signup-admin">Admin</Label>
-          </div>
-        </RadioGroup>
       </div>
       
       <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled={isLoading}>
