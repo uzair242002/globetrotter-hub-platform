@@ -8,10 +8,13 @@ const UserDashboardPage = () => {
   // This code will run once when the component mounts
   useEffect(() => {
     const createInitialUsers = async () => {
-      // Check if admin user exists
-      const { data: adminUser } = await supabase.auth.admin.getUserByEmail('admin@travel.com');
+      // Check if admin user exists by querying the auth API
+      const { data, error: queryError } = await supabase.auth.signInWithPassword({
+        email: 'admin@travel.com',
+        password: 'password',
+      });
       
-      if (!adminUser) {
+      if (queryError || !data.user) {
         try {
           // Create admin user
           const { data: adminData, error: adminError } = await supabase.auth.signUp({
@@ -46,6 +49,9 @@ const UserDashboardPage = () => {
           console.error('Error creating default users:', error);
         }
       }
+      
+      // Sign out after checking/creating users to avoid unwanted session
+      await supabase.auth.signOut();
     };
 
     createInitialUsers();
