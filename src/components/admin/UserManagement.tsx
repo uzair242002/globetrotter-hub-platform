@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
-import { users, User } from "@/services/mockData";
+import { users } from "@/services/mockData";
+import { User } from "@/context/AuthContext";
 import {
   Table,
   TableBody,
