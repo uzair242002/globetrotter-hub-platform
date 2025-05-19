@@ -120,12 +120,6 @@ const LoginForm = () => {
       <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled={isLoading}>
         {isLoading ? "Logging in..." : "Login"}
       </Button>
-
-      <div className="text-center text-sm text-gray-500 mt-4">
-        <p>Demo Accounts:</p>
-        <p>Admin: admin@travel.com / password</p>
-        <p>User: user@travel.com / password</p>
-      </div>
     </form>
   );
 };
