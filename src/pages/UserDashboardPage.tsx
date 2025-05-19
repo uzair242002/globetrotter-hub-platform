@@ -9,13 +9,9 @@ const UserDashboardPage = () => {
   useEffect(() => {
     const createInitialUsers = async () => {
       // Check if admin user exists
-      const { data: existingAdmin } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', 'admin@travel.com')
-        .maybeSingle();
-
-      if (!existingAdmin) {
+      const { data: adminUser } = await supabase.auth.admin.getUserByEmail('admin@travel.com');
+      
+      if (!adminUser) {
         try {
           // Create admin user
           const { data: adminData, error: adminError } = await supabase.auth.signUp({
