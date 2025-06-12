@@ -5,11 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { TravelPackage } from "@/services/mockData";
+
+interface TravelPackage {
+  id: number;
+  destination: string;
+  duration: number;
+  price: number;
+  description: string;
+  images: string[];
+  inclusions: string[];
+  is_active: boolean;
+}
 
 interface PackageFormProps {
   initialData?: TravelPackage;
-  onSubmit: (data: TravelPackage) => void;
+  onSubmit: (data: TravelPackage | Omit<TravelPackage, 'id'>) => void;
   onCancel: () => void;
 }
 
@@ -18,18 +28,16 @@ export const PackageForm: React.FC<PackageFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<TravelPackage>(
-    initialData || {
-      id: "",
-      destination: "",
-      duration: 1,
-      price: 0,
-      inclusions: [],
-      description: "",
-      images: [],
-      isActive: true,
-    }
-  );
+  const [formData, setFormData] = useState<Omit<TravelPackage, 'id'> & { id?: number }>({
+    destination: initialData?.destination || "",
+    duration: initialData?.duration || 1,
+    price: initialData?.price || 0,
+    description: initialData?.description || "",
+    images: initialData?.images || [],
+    inclusions: initialData?.inclusions || [],
+    is_active: initialData?.is_active ?? true,
+    ...(initialData?.id && { id: initialData.id })
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -59,7 +67,12 @@ export const PackageForm: React.FC<PackageFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (formData.id) {
+      onSubmit(formData as TravelPackage);
+    } else {
+      const { id, ...dataWithoutId } = formData;
+      onSubmit(dataWithoutId);
+    }
   };
 
   return (
@@ -97,7 +110,7 @@ export const PackageForm: React.FC<PackageFormProps> = ({
             name="price"
             type="number"
             min="0"
-            step="0.01"
+            step="1"
             value={formData.price}
             onChange={handleChange}
             required
@@ -109,13 +122,13 @@ export const PackageForm: React.FC<PackageFormProps> = ({
           <div className="flex items-center">
             <Switch
               id="active"
-              checked={formData.isActive}
+              checked={formData.is_active}
               onCheckedChange={(checked) =>
-                setFormData((prev) => ({ ...prev, isActive: checked }))
+                setFormData((prev) => ({ ...prev, is_active: checked }))
               }
             />
             <Label htmlFor="active" className="ml-2">
-              {formData.isActive ? "Active" : "Inactive"}
+              {formData.is_active ? "Active" : "Inactive"}
             </Label>
           </div>
         </div>
