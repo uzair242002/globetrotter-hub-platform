@@ -81,7 +81,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <Label htmlFor="price">Price per person</Label>
           <Input
             id="price"
-            value={`$${travelPackage.price}`}
+            value={`₹${travelPackage.price}`}
             disabled
           />
         </div>
@@ -115,7 +115,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <Label htmlFor="total">Total Cost</Label>
           <Input
             id="total"
-            value={`$${travelPackage.price * people}`}
+            value={`₹${travelPackage.price * people}`}
             disabled
           />
         </div>

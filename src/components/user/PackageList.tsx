@@ -112,7 +112,7 @@ export const PackageList = () => {
           </div>
           
           <div className="space-y-2">
-            <Label>Price Range: ${priceFilter[0]} - ${priceFilter[1]}</Label>
+            <Label>Price Range: ₹{priceFilter[0]} - ₹{priceFilter[1]}</Label>
             <Slider
               value={priceFilter}
               min={0}
@@ -161,7 +161,7 @@ export const PackageList = () => {
                 <h3 className="text-xl font-bold">{pkg.destination}</h3>
                 <div className="flex justify-between items-center mt-2 mb-4">
                   <span className="text-gray-600">{pkg.duration} days</span>
-                  <span className="text-xl font-bold text-blue-600">${pkg.price}</span>
+                  <span className="text-xl font-bold text-blue-600">₹{pkg.price}</span>
                 </div>
                 <p className="text-gray-600 mb-4 line-clamp-2">{pkg.description}</p>
                 <div className="flex gap-2">

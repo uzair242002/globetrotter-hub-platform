@@ -105,7 +105,7 @@ export const PackageManagement = () => {
               <h3 className="text-xl font-bold">{pkg.destination}</h3>
               <div className="flex justify-between items-center mt-2">
                 <p className="text-gray-600">{pkg.duration} days</p>
-                <p className="text-lg font-bold">${pkg.price}</p>
+                <p className="text-lg font-bold">₹{pkg.price}</p>
               </div>
               <div className="mt-4 space-y-3">
                 <div className="flex justify-between items-center">

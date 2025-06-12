@@ -86,7 +86,7 @@ export const BookingHistory = () => {
                       </TableCell>
                       <TableCell>{booking.travelDate}</TableCell>
                       <TableCell>{booking.people}</TableCell>
-                      <TableCell>${totalCost}</TableCell>
+                      <TableCell>₹{totalCost}</TableCell>
                       <TableCell>
                         <Badge
                           className={`${
