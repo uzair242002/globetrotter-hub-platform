@@ -4,8 +4,18 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TravelPackage, bookings } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
+
+interface TravelPackage {
+  id: number;
+  destination: string;
+  duration: number;
+  price: number;
+  description: string;
+  images: string[];
+  inclusions: string[];
+  is_active: boolean;
+}
 
 interface BookingFormProps {
   travelPackage: TravelPackage;
@@ -28,21 +38,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     
     // Simulate API delay
     setTimeout(() => {
-      // Create a new booking
-      const newBooking = {
-        id: String(bookings.length + 1),
-        packageId: travelPackage.id,
-        userId: currentUser?.id || "",
-        userName: currentUser?.name || "",
-        travelDate,
-        people,
-        status: "pending" as const,
-        createdAt: new Date().toISOString(),
-      };
-      
-      // Add to bookings (in a real app, this would be an API call)
-      bookings.push(newBooking);
-      
       toast({
         title: "Booking Request Submitted",
         description: "Your booking is now pending approval from the admin.",

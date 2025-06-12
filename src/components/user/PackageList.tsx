@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { BookingForm } from "./BookingForm";
+import { BookingModal } from "./BookingModal";
 import { PackageDetails } from "./PackageDetails";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +27,8 @@ export const PackageList = () => {
   const [durationFilter, setDurationFilter] = useState<number[]>([1, 30]);
   const [priceFilter, setPriceFilter] = useState<number[]>([0, 200000]);
   const [selectedPackage, setSelectedPackage] = useState<TravelPackage | null>(null);
-  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchPackages();
@@ -106,13 +106,15 @@ export const PackageList = () => {
   const handleViewDetails = (pkg: TravelPackage) => {
     console.log("Viewing details for package:", pkg);
     setSelectedPackage(pkg);
-    setShowBookingForm(false);
+    setShowDetailsModal(true);
+    setShowBookingModal(false);
   };
 
   const handleBookNow = (pkg: TravelPackage) => {
     console.log("Booking package:", pkg);
     setSelectedPackage(pkg);
-    setShowBookingForm(true);
+    setShowBookingModal(true);
+    setShowDetailsModal(false);
   };
 
   const handleDurationChange = (value: number[]) => {
@@ -123,6 +125,12 @@ export const PackageList = () => {
   const handlePriceChange = (value: number[]) => {
     console.log("Price change:", value);
     setPriceFilter(value);
+  };
+
+  const handleCloseModals = () => {
+    setShowBookingModal(false);
+    setShowDetailsModal(false);
+    setSelectedPackage(null);
   };
 
   if (loading) {
@@ -170,23 +178,6 @@ export const PackageList = () => {
         </div>
       </div>
 
-      {selectedPackage && (
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          {showBookingForm ? (
-            <BookingForm
-              travelPackage={selectedPackage}
-              onClose={() => setShowBookingForm(false)}
-            />
-          ) : (
-            <PackageDetails
-              travelPackage={selectedPackage}
-              onBook={() => setShowBookingForm(true)}
-              onClose={() => setSelectedPackage(null)}
-            />
-          )}
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPackages.length === 0 ? (
           <div className="col-span-3 text-center py-8">
@@ -197,7 +188,7 @@ export const PackageList = () => {
             <Card key={pkg.id} className="overflow-hidden">
               <div className="aspect-video w-full relative">
                 <img
-                  src={pkg.images[0] || '/placeholder.svg'}
+                  src={pkg.images?.[0] || '/placeholder.svg'}
                   alt={pkg.destination}
                   className="object-cover w-full h-full"
                 />
@@ -226,6 +217,29 @@ export const PackageList = () => {
           ))
         )}
       </div>
+
+      {/* Booking Modal */}
+      {selectedPackage && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={handleCloseModals}
+          travelPackage={selectedPackage}
+        />
+      )}
+
+      {/* Package Details Modal */}
+      {selectedPackage && showDetailsModal && (
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <PackageDetails
+            travelPackage={selectedPackage}
+            onBook={() => {
+              setShowDetailsModal(false);
+              setShowBookingModal(true);
+            }}
+            onClose={handleCloseModals}
+          />
+        </div>
+      )}
     </div>
   );
 };
