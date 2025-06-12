@@ -1,14 +1,20 @@
 
 import React, { useState, useEffect } from "react";
-import { TravelPackage } from "@/services/mockData";
+import { getActivePackages, TravelPackage } from "@/services/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { BookingForm } from "./BookingForm";
 import { PackageDetails } from "./PackageDetails";
-import { supabase } from "@/integrations/supabase/client";
 
 export const PackageList = () => {
   const [packages, setPackages] = useState<TravelPackage[]>([]);
@@ -18,66 +24,13 @@ export const PackageList = () => {
   const [priceFilter, setPriceFilter] = useState<number[]>([0, 5000]);
   const [selectedPackage, setSelectedPackage] = useState<TravelPackage | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPackages();
-    
-    // Set up real-time subscription for package updates
-    const channel = supabase
-      .channel('package-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'travel_packages'
-        },
-        () => {
-          console.log('Package data changed, refreshing...');
-          fetchPackages();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const activePackages = getActivePackages();
+    console.log("Active packages:", activePackages);
+    setPackages(activePackages);
+    setFilteredPackages(activePackages);
   }, []);
-
-  const fetchPackages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('travel_packages')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching packages:', error);
-        return;
-      }
-
-      const formattedPackages: TravelPackage[] = (data || []).map(pkg => ({
-        id: pkg.id.toString(),
-        destination: pkg.destination,
-        duration: pkg.duration,
-        price: pkg.price,
-        description: pkg.description,
-        images: pkg.images || [],
-        inclusions: pkg.inclusions || [],
-        isActive: pkg.is_active
-      }));
-
-      console.log("Active packages from DB:", formattedPackages);
-      setPackages(formattedPackages);
-      setFilteredPackages(formattedPackages);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let result = packages;
@@ -120,6 +73,7 @@ export const PackageList = () => {
     setShowBookingForm(true);
   };
 
+  // Function to handle slider value changes
   const handleDurationChange = (value: number[]) => {
     console.log("Duration change:", value);
     setDurationFilter(value);
@@ -129,14 +83,6 @@ export const PackageList = () => {
     console.log("Price change:", value);
     setPriceFilter(value);
   };
-
-  if (loading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Loading packages...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -203,10 +149,10 @@ export const PackageList = () => {
           </div>
         ) : (
           filteredPackages.map((pkg) => (
-            <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={pkg.id} className="overflow-hidden">
               <div className="aspect-video w-full relative">
                 <img
-                  src={pkg.images[0] || "/placeholder.svg"}
+                  src={pkg.images[0]}
                   alt={pkg.destination}
                   className="object-cover w-full h-full"
                 />

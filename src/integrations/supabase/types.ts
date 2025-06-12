@@ -36,45 +36,6 @@ export type Database = {
         }
         Relationships: []
       }
-      travel_packages: {
-        Row: {
-          created_at: string
-          description: string
-          destination: string
-          duration: number
-          id: number
-          images: string[] | null
-          inclusions: string[] | null
-          is_active: boolean
-          price: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description: string
-          destination: string
-          duration: number
-          id?: number
-          images?: string[] | null
-          inclusions?: string[] | null
-          is_active?: boolean
-          price: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          destination?: string
-          duration?: number
-          id?: number
-          images?: string[] | null
-          inclusions?: string[] | null
-          is_active?: boolean
-          price?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
