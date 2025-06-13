@@ -8,18 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { BookingModal } from "./BookingModal";
 import { PackageDetails } from "./PackageDetails";
 import { supabase } from "@/integrations/supabase/client";
-
-interface TravelPackage {
-  id: number;
-  destination: string;
-  duration: number;
-  price: number;
-  description: string;
-  images: string[];
-  inclusions: string[];
-  is_active: boolean;
-  isActive?: boolean; // Add compatibility with mock data
-}
+import { TravelPackage } from "@/services/mockData";
 
 export const PackageList = () => {
   const [packages, setPackages] = useState<TravelPackage[]>([]);
@@ -68,7 +57,20 @@ export const PackageList = () => {
       if (error) throw error;
       
       console.log("Fetched packages:", data);
-      setPackages(data || []);
+      
+      // Transform the data to match TravelPackage interface
+      const transformedPackages: TravelPackage[] = (data || []).map(pkg => ({
+        id: pkg.id.toString(), // Convert number to string
+        destination: pkg.destination,
+        duration: pkg.duration,
+        price: pkg.price,
+        description: pkg.description,
+        images: pkg.images || [],
+        inclusions: pkg.inclusions || [],
+        isActive: pkg.is_active
+      }));
+      
+      setPackages(transformedPackages);
     } catch (error) {
       console.error('Error fetching packages:', error);
     } finally {

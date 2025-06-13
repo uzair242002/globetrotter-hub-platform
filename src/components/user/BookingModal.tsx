@@ -7,17 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, MapPin, Users, Clock, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface TravelPackage {
-  id: number;
-  destination: string;
-  duration: number;
-  price: number;
-  description: string;
-  images: string[];
-  inclusions: string[];
-  is_active: boolean;
-}
+import { TravelPackage } from "@/services/mockData";
 
 interface BookingModalProps {
   isOpen: boolean;
