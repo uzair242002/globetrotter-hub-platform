@@ -54,7 +54,7 @@ const mapSupabaseUser = async (supabaseUser: SupabaseUser): Promise<User | null>
 };
 
 // AuthProvider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
