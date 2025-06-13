@@ -53,14 +53,21 @@ export const BookingManagement = () => {
     cancelled: "bg-red-100 text-red-800 border-red-200",
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  // Calculate total revenue
+  const totalRevenue = filteredBookings.reduce((sum, booking) => {
+    const travelPackage = getTravelPackageById(booking.packageId);
+    return sum + (travelPackage ? travelPackage.price * booking.people : 0);
+  }, 0);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Manage Bookings</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Manage Bookings</h2>
+          <p className="text-lg font-semibold text-green-600 mt-2">
+            Total Revenue: ₹{totalRevenue.toLocaleString()}
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Filter by status:</span>
           <Select
@@ -91,7 +98,7 @@ export const BookingManagement = () => {
                 <TableHead>Package</TableHead>
                 <TableHead>Travel Date</TableHead>
                 <TableHead>People</TableHead>
-                <TableHead>Total Amount</TableHead>
+                <TableHead className="text-right">Booking Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -109,15 +116,15 @@ export const BookingManagement = () => {
                   const totalAmount = travelPackage ? travelPackage.price * booking.people : 0;
                   return (
                     <TableRow key={booking.id}>
-                      <TableCell>{booking.id}</TableCell>
+                      <TableCell className="font-medium">{booking.id}</TableCell>
                       <TableCell>{booking.userName}</TableCell>
                       <TableCell>
                         {travelPackage ? travelPackage.destination : "Unknown Package"}
                       </TableCell>
                       <TableCell>{booking.travelDate}</TableCell>
-                      <TableCell>{booking.people}</TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-green-600">
+                      <TableCell className="text-center">{booking.people}</TableCell>
+                      <TableCell className="text-right">
+                        <span className="font-bold text-lg text-green-600 bg-green-50 px-3 py-1 rounded-md">
                           ₹{totalAmount.toLocaleString()}
                         </span>
                       </TableCell>
