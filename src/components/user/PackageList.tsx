@@ -18,6 +18,7 @@ interface TravelPackage {
   images: string[];
   inclusions: string[];
   is_active: boolean;
+  isActive?: boolean; // Add compatibility with mock data
 }
 
 export const PackageList = () => {
@@ -46,7 +47,7 @@ export const PackageList = () => {
         },
         (payload) => {
           console.log('Real-time update:', payload);
-          fetchPackages(); // Refetch packages when changes occur
+          fetchPackages();
         }
       )
       .subscribe();
@@ -77,11 +78,6 @@ export const PackageList = () => {
 
   useEffect(() => {
     let result = packages;
-    console.log("Filtering packages with:", { 
-      destinationFilter, 
-      durationFilter, 
-      priceFilter 
-    });
 
     // Filter by destination
     if (destinationFilter) {
@@ -100,32 +96,19 @@ export const PackageList = () => {
       pkg => pkg.price >= priceFilter[0] && pkg.price <= priceFilter[1]
     );
 
-    console.log("Filtered results:", result);
     setFilteredPackages(result);
   }, [destinationFilter, durationFilter, priceFilter, packages]);
 
   const handleViewDetails = (pkg: TravelPackage) => {
-    console.log("Viewing details for package:", pkg);
     setSelectedPackage(pkg);
     setShowDetailsModal(true);
     setShowBookingModal(false);
   };
 
   const handleBookNow = (pkg: TravelPackage) => {
-    console.log("Booking package:", pkg);
     setSelectedPackage(pkg);
     setShowBookingModal(true);
     setShowDetailsModal(false);
-  };
-
-  const handleDurationChange = (value: number[]) => {
-    console.log("Duration change:", value);
-    setDurationFilter(value);
-  };
-
-  const handlePriceChange = (value: number[]) => {
-    console.log("Price change:", value);
-    setPriceFilter(value);
   };
 
   const handleCloseModals = () => {
@@ -160,7 +143,7 @@ export const PackageList = () => {
               min={1}
               max={30}
               step={1}
-              onValueChange={handleDurationChange}
+              onValueChange={setDurationFilter}
               className="py-4"
             />
           </div>
@@ -172,7 +155,7 @@ export const PackageList = () => {
               min={0}
               max={200000}
               step={5000}
-              onValueChange={handlePriceChange}
+              onValueChange={setPriceFilter}
               className="py-4"
             />
           </div>
@@ -219,7 +202,6 @@ export const PackageList = () => {
         )}
       </div>
 
-      {/* Booking Modal */}
       {selectedPackage && (
         <BookingModal
           isOpen={showBookingModal}
@@ -228,7 +210,6 @@ export const PackageList = () => {
         />
       )}
 
-      {/* Package Details Modal */}
       {selectedPackage && showDetailsModal && (
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <PackageDetails
