@@ -91,6 +91,7 @@ export const BookingManagement = () => {
                 <TableHead>Package</TableHead>
                 <TableHead>Travel Date</TableHead>
                 <TableHead>People</TableHead>
+                <TableHead>Total Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -98,13 +99,14 @@ export const BookingManagement = () => {
             <TableBody>
               {filteredBookings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-4 text-gray-500">
                     No bookings found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredBookings.map((booking) => {
                   const travelPackage = getTravelPackageById(booking.packageId);
+                  const totalAmount = travelPackage ? travelPackage.price * booking.people : 0;
                   return (
                     <TableRow key={booking.id}>
                       <TableCell>{booking.id}</TableCell>
@@ -114,6 +116,11 @@ export const BookingManagement = () => {
                       </TableCell>
                       <TableCell>{booking.travelDate}</TableCell>
                       <TableCell>{booking.people}</TableCell>
+                      <TableCell>
+                        <span className="font-semibold text-green-600">
+                          ₹{totalAmount.toLocaleString()}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           className={`${
