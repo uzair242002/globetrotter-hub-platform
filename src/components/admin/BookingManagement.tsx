@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { bookings, Booking, getTravelPackageById } from "@/services/mockData";
+import React, { useState, useEffect } from "react";
+import { getTravelPackageById } from "@/services/mockData";
 import {
   Table,
   TableBody,
@@ -20,30 +20,118 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Booking {
+  id: string;
+  user_id: string;
+  user_name: string;
+  package_id: string;
+  travel_date: string;
+  people: number;
+  status: string;
+  created_at: string;
+}
 
 export const BookingManagement = () => {
-  const [bookingList, setBookingList] = useState<Booking[]>(bookings);
+  const [bookingList, setBookingList] = useState<Booking[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchBookings();
+    
+    // Set up real-time subscription for bookings
+    const channel = supabase
+      .channel('bookings_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        },
+        (payload) => {
+          console.log('Real-time booking update:', payload);
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bookings.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setBookingList(data || []);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredBookings = statusFilter === "all"
     ? bookingList
     : bookingList.filter(booking => booking.status === statusFilter);
 
-  const updateBookingStatus = (
+  const updateBookingStatus = async (
     bookingId: string,
     newStatus: "pending" | "confirmed" | "completed" | "cancelled"
   ) => {
-    setBookingList(prevBookings =>
-      prevBookings.map(booking =>
-        booking.id === bookingId ? { ...booking, status: newStatus } : booking
-      )
-    );
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
 
-    toast({
-      title: "Booking status updated",
-      description: `The booking has been ${newStatus}.`,
-    });
+      if (error) {
+        console.error('Error updating booking status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update booking status.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      setBookingList(prevBookings =>
+        prevBookings.map(booking =>
+          booking.id === bookingId ? { ...booking, status: newStatus } : booking
+        )
+      );
+
+      toast({
+        title: "Booking status updated",
+        description: `The booking has been ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   const statusColors = {
@@ -55,9 +143,13 @@ export const BookingManagement = () => {
 
   // Calculate total revenue
   const totalRevenue = filteredBookings.reduce((sum, booking) => {
-    const travelPackage = getTravelPackageById(booking.packageId);
+    const travelPackage = getTravelPackageById(booking.package_id);
     return sum + (travelPackage ? travelPackage.price * booking.people : 0);
   }, 0);
+
+  if (loading) {
+    return <div className="text-center py-8">Loading bookings...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -112,16 +204,16 @@ export const BookingManagement = () => {
                 </TableRow>
               ) : (
                 filteredBookings.map((booking) => {
-                  const travelPackage = getTravelPackageById(booking.packageId);
+                  const travelPackage = getTravelPackageById(booking.package_id);
                   const totalAmount = travelPackage ? travelPackage.price * booking.people : 0;
                   return (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.id}</TableCell>
-                      <TableCell>{booking.userName}</TableCell>
+                      <TableCell className="font-medium">{booking.id.slice(0, 8)}...</TableCell>
+                      <TableCell>{booking.user_name}</TableCell>
                       <TableCell>
                         {travelPackage ? travelPackage.destination : "Unknown Package"}
                       </TableCell>
-                      <TableCell>{booking.travelDate}</TableCell>
+                      <TableCell>{new Date(booking.travel_date).toLocaleDateString()}</TableCell>
                       <TableCell className="text-center">{booking.people}</TableCell>
                       <TableCell className="text-right">
                         <span className="font-bold text-lg text-green-600 bg-green-50 px-3 py-1 rounded-md">

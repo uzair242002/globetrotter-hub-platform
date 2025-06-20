@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Calendar, MapPin, Users, Clock, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TravelPackage } from "@/services/mockData";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -26,24 +27,62 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [people, setPeople] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to make a booking.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: currentUser.id,
+          user_name: currentUser.name || currentUser.email || 'Unknown User',
+          package_id: travelPackage.id,
+          travel_date: travelDate,
+          people: people,
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Error creating booking:', error);
+        toast({
+          title: "Error",
+          description: "Failed to submit booking. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Booking Request Submitted! 🎉",
         description: "Your booking is now pending approval from the admin. We'll contact you soon!",
       });
       
-      setIsSubmitting(false);
       onClose();
       
       // Reset form
       setTravelDate("");
       setPeople(1);
-    }, 1000);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calculate minimum valid date (tomorrow)
@@ -97,7 +136,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </Label>
               <Input
                 id="traveler"
-                value={currentUser?.name || ""}
+                value={currentUser?.name || currentUser?.email || ""}
                 disabled
                 className="bg-gray-50"
               />

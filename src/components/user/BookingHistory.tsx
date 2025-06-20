@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { bookings, Booking, getTravelPackageById } from "@/services/mockData";
+import { getTravelPackageById } from "@/services/mockData";
 import {
   Table,
   TableBody,
@@ -14,34 +14,90 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Booking {
+  id: string;
+  package_id: string;
+  travel_date: string;
+  people: number;
+  status: string;
+  created_at: string;
+}
 
 export const BookingHistory = () => {
   const { currentUser } = useAuth();
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     if (currentUser) {
-      const filteredBookings = bookings.filter(booking => booking.userId === currentUser.id);
-      setUserBookings(filteredBookings);
+      fetchUserBookings();
     }
   }, [currentUser]);
 
-  const cancelBooking = (bookingId: string) => {
-    // Update the booking status in the mock database
-    const updatedBookings = bookings.map(booking =>
-      booking.id === bookingId ? { ...booking, status: "cancelled" as const } : booking
-    );
-    
-    // Update the local state
-    setUserBookings(userBookings.map(booking =>
-      booking.id === bookingId ? { ...booking, status: "cancelled" as const } : booking
-    ));
-    
-    toast({
-      title: "Booking Cancelled",
-      description: "Your booking has been cancelled successfully.",
-    });
+  const fetchUserBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', currentUser?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your bookings.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUserBookings(data || []);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelBooking = async (bookingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingId)
+        .eq('user_id', currentUser?.id);
+
+      if (error) {
+        console.error('Error canceling booking:', error);
+        toast({
+          title: "Error",
+          description: "Failed to cancel booking.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      setUserBookings(userBookings.map(booking =>
+        booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
+      ));
+      
+      toast({
+        title: "Booking Cancelled",
+        description: "Your booking has been cancelled successfully.",
+      });
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   const statusColors = {
@@ -50,6 +106,10 @@ export const BookingHistory = () => {
     completed: "bg-blue-100 text-blue-800 border-blue-200",
     cancelled: "bg-red-100 text-red-800 border-red-200",
   };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading your bookings...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -76,7 +136,7 @@ export const BookingHistory = () => {
               </TableHeader>
               <TableBody>
                 {userBookings.map((booking) => {
-                  const travelPackage = getTravelPackageById(booking.packageId);
+                  const travelPackage = getTravelPackageById(booking.package_id);
                   const totalCost = travelPackage ? travelPackage.price * booking.people : 0;
                   
                   return (
@@ -84,9 +144,9 @@ export const BookingHistory = () => {
                       <TableCell>
                         {travelPackage ? travelPackage.destination : "Unknown Package"}
                       </TableCell>
-                      <TableCell>{booking.travelDate}</TableCell>
+                      <TableCell>{new Date(booking.travel_date).toLocaleDateString()}</TableCell>
                       <TableCell>{booking.people}</TableCell>
-                      <TableCell>₹{totalCost}</TableCell>
+                      <TableCell>₹{totalCost.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge
                           className={`${
